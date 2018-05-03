@@ -707,6 +707,7 @@ const inspectMp4 = function (data) {
     end,
     box,
     seenMOOV = false,
+    seenMOOF = false,
     pendingMDAT = null;
 
   // Convert data from Uint8Array to ArrayBuffer, to follow Dataview API
@@ -728,6 +729,10 @@ const inspectMp4 = function (data) {
       seenMOOV = true;
     }
 
+    if (type === 'moof') {
+      seenMOOF = true;
+    }
+
     if (type === 'mdat' && !seenMOOV) {
       pendingMDAT = data.subarray(i + 8, end);
     } else {
@@ -743,7 +748,7 @@ const inspectMp4 = function (data) {
       result.push(box);
     }
 
-    if (pendingMDAT && seenMOOV) {
+    if (pendingMDAT && (seenMOOV || seenMOOF)) {
       box = parse['mdat'](pendingMDAT);
       box.size = pendingMDAT.byteLength;
       box.type = 'mdat';
